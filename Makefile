@@ -1,4 +1,4 @@
-# Project: codec2
+# Project: M17_UDP_listener
 
 CPP      = g++
 CC       = gcc
@@ -8,7 +8,7 @@ LINKOBJ  = main.o codebook.o codebookd.o codebookdt.o codebookge.o codebookjvm.o
 LIBS     = -static-libgcc -lm
 INCS     = 
 CXXINCS  = 
-BIN      = m17_udp
+BIN      = m17_udp_listener
 CXXFLAGS = $(CXXINCS) -march=native -msse3 -O2 -std=gnu99
 CFLAGS   = $(INCS) -march=native -msse3 -O2 -std=gnu99
 RM       = rm -f
