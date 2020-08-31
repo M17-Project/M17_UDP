@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		if(rcv_len==15)
+		if(rcv_len==50)
 		{
 			uint64_t tmp;
 			tmp=(bits[0]<<(5*8))|(bits[1]<<(4*8))|(bits[2]<<(3*8))|(bits[3]<<(2*8))|(bits[4]<<(1*8))|bits[5];
@@ -118,11 +118,10 @@ int main(int argc, char *argv[])
 
 			//info
 			printf("%s\t\t%s\t\t%04X\n", src, dst, type);
-
-			/*
+			size_t frame1_offset = 32, frame2_offset =frame1_offset+8;
 			//reconstruct speech
-			codec2_decode(cod, &speech_buff[0], &bits[0]);
-			codec2_decode(cod, &speech_buff[160], &bits[8]);
+			codec2_decode(cod, &speech_buff[0], &bits[frame1_offset]);
+			codec2_decode(cod, &speech_buff[160], &bits[frame2_offset]);
 			
 			//send to stdout for playback
 			for(uint16_t i=0; i<320*2; i++)
