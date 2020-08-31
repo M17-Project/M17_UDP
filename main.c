@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 			crc_pld=bits[48]<<8|bits[49];
 
 			//info
-			/*printf("%s\t\t%s\t\t%04X\n", src, dst, type);*/
+			fprintf(stderr,"%s\t\t%s\t\t%04X\n", src, dst, type);
 
 			if(((type>>1)&0b11)==0b10)	//voice only
 			{
