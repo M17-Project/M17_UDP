@@ -34,7 +34,12 @@ int s, i, slen = sizeof(si_other) , rcv_len;
 //stream info
 uint8_t src[10];
 uint8_t dst[10];
-uint16_t type=0;
+uint16_t type;
+uint8_t nonce[14];
+uint16_t crc_lich;
+uint16_t fn;
+uint8_t payload[16];
+uint16_t crc_pld;
 
 uint8_t* decode_callsign_base40(uint64_t encoded, uint8_t *callsign)
 {
@@ -116,21 +121,30 @@ int main(int argc, char *argv[])
 			decode_callsign_base40(tmp, dst);
 			type=(bits[12]<<8)|bits[13];
 
+			memcpy(nonce, &bits[14], 14);
+			crc_lich=bits[28]<<8|bits[29];
+			fn=bits[30]<<8|bits[31];
+			memcpy(payload, &bits[32], 16);
+			crc_pld=bits[48]<<8|bits[49];
+
 			//info
-			printf("%s\t\t%s\t\t%04X\n", src, dst, type);
-			size_t frame1_offset = 32, frame2_offset =frame1_offset+8;
-			//reconstruct speech
-			codec2_decode(cod, &speech_buff[0], &bits[frame1_offset]);
-			codec2_decode(cod, &speech_buff[160], &bits[frame2_offset]);
-			
-			//send to stdout for playback
-			for(uint16_t i=0; i<320*2; i++)
+			/*printf("%s\t\t%s\t\t%04X\n", src, dst, type);*/
+
+			if(((type>>1)&0b11)==0b10)	//voice only
 			{
-				//signed 16bit, little endian
-				if(!(i%2))//lsb
-					printf("%c", (uint8_t)(speech_buff[i/2]&0xFF));
-				else
-					printf("%c", (uint8_t)(speech_buff[i/2]>>8));
+				//reconstruct speech
+				codec2_decode(cod, &speech_buff[0], &payload[0]);
+				codec2_decode(cod, &speech_buff[160], &payload[8]);
+				
+				//send to stdout for playback
+				for(uint16_t i=0; i<320*2; i++)
+				{
+					//signed 16bit, little endian
+					if(!(i%2))//lsb
+						printf("%c", (uint8_t)(speech_buff[i/2]&0xFF));
+					else
+						printf("%c", (uint8_t)(speech_buff[i/2]>>8));
+				}
 			}
 
 			/*fp=fopen("out.raw", "a");
