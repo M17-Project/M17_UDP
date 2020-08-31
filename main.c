@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		if(rcv_len==15)
+		if(rcv_len==50)
 		{
 			uint64_t tmp;
 			tmp=(bits[0]<<(5*8))|(bits[1]<<(4*8))|(bits[2]<<(3*8))|(bits[3]<<(2*8))|(bits[4]<<(1*8))|bits[5];
@@ -131,10 +131,10 @@ int main(int argc, char *argv[])
 			printf("%s\t\t%s\t\t%04X\n", src, dst, type);
 
 			if(((type>>1)&0b11)==0b10)	//voice only
-			{/*
+			{
 				//reconstruct speech
-				codec2_decode(cod, &speech_buff[0], &bits[0]);
-				codec2_decode(cod, &speech_buff[160], &bits[8]);
+				codec2_decode(cod, &speech_buff[0], &payload[0]);
+				codec2_decode(cod, &speech_buff[160], &payload[8]);
 				
 				//send to stdout for playback
 				for(uint16_t i=0; i<320*2; i++)
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 						printf("%c", (uint8_t)(speech_buff[i/2]&0xFF));
 					else
 						printf("%c", (uint8_t)(speech_buff[i/2]>>8));
-				}*/
+				}
 			}
 
 			/*fp=fopen("out.raw", "a");
