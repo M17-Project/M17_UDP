@@ -140,11 +140,12 @@ int main(int argc, char *argv[])
 				for(uint16_t i=0; i<320*2; i++)
 				{
 					//signed 16bit, little endian
-					if(!(i%2))//lsb
+					if(!(i%2))//lsb 
 						printf("%c", (uint8_t)(speech_buff[i/2]&0xFF));
 					else
 						printf("%c", (uint8_t)(speech_buff[i/2]>>8));
 				}
+				fflush(stdout);
 			}
 
 			/*fp=fopen("out.raw", "a");
