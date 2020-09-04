@@ -26,3 +26,5 @@ $(BIN): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@ 
 
+run:
+	./m17_udp_listener 17000 | aplay -t raw -f S16_LE -r 8000 -c 1

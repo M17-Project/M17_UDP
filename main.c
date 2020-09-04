@@ -172,11 +172,11 @@ int main(int argc, char *argv[])
 			//info
 			//fprintf(stderr,"%s\t\t%s\t\t%04X\n", packet.src, packet.dst, packet.type);
 
-			if(((type>>1)&0b11)==0b10)	//voice only
+			if(((packet.type>>1)&0b11)==0b10)	//voice only
 			{
 				//reconstruct speech
-				codec2_decode(cod, &speech_buff[0], packet->payload[0]);
-				codec2_decode(cod, &speech_buff[160], packet->payload[8]);
+				codec2_decode(cod, &speech_buff[0], &packet.payload[0]);
+				codec2_decode(cod, &speech_buff[160], &packet.payload[8]);
 				
 				//send to stdout for playback
 				for(uint16_t i=0; i<320*2; i++)
