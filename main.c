@@ -64,7 +64,7 @@ void CRC_Init(uint16_t *crc_table, uint16_t poly)
 				remainder=(remainder<<1);
 		}
 
-        crc_table[dividend]=remainder;
+        	crc_table[dividend]=remainder;
 	}
 }
 
