@@ -52,28 +52,28 @@ void CRC_Init(uint16_t *crc_table, uint16_t poly)
 {
 	uint16_t remainder;
 	
-	for(uint16_t dividend=0; dividend<256; ++dividend)
+	for(uint16_t dividend=0; dividend<256; dividend++)
 	{
 		remainder=dividend<<8;
 		
-		for(uint8_t bit=8; bit>0; --bit)
+		for(uint8_t bit=8; bit>0; bit--)
 		{		
 			if(remainder&(1<<15))
 				remainder=(remainder<<1)^poly;
 			else
 				remainder=(remainder<<1);
 		}
-
-        	crc_table[dividend]=remainder;
+		
+		crc_table[dividend]=remainder;
 	}
 }
 
-uint16_t crcM17(const *crc_table, const uint8_t* message, uint16_t nBytes)
+uint16_t CRC_M17(uint16_t* crc_table, const uint8_t* message, uint16_t nBytes)
 {
 	uint8_t data;
-	uint16_t remainder=0;
+	uint16_t remainder=0xFFFF;
 
-	for(uint16_t byte=0; byte<nBytes; ++byte)
+	for(uint16_t byte=0; byte<nBytes; byte++)
 	{
 		data=message[byte]^(remainder>>8);
 		remainder=crc_table[data]^(remainder<<8);
