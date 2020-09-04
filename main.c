@@ -28,18 +28,59 @@ struct CODEC2 *cod;
 struct sockaddr_in si_me, si_other;
 int s, i, slen = sizeof(si_other) , rcv_len;
 
+//CRC
+uint16_t CRC_LUT[256];
+uint16_t poly=0xAC9A;
+
 //test
 //FILE *fp;
 
 //stream info
-uint8_t src[10];
-uint8_t dst[10];
-uint16_t type;
-uint8_t nonce[14];
-uint16_t crc_lich;
-uint16_t fn;
-uint8_t payload[16];
-uint16_t crc_pld;
+struct moip_packet
+{
+	uint8_t src[10];
+	uint8_t dst[10];
+	uint16_t type;
+	uint8_t nonce[14];
+	uint16_t crc_lich;
+	uint16_t fn;
+	uint8_t payload[16];
+	uint16_t crc_pld;
+} packet;
+
+void CRC_Init(uint16_t *crc_table, uint16_t poly)
+{
+	uint16_t remainder;
+	
+	for(uint16_t dividend=0; dividend<256; ++dividend)
+	{
+		remainder=dividend<<8;
+		
+		for(uint8_t bit=8; bit>0; --bit)
+		{		
+			if(remainder&(1<<15))
+				remainder=(remainder<<1)^poly;
+			else
+				remainder=(remainder<<1);
+		}
+
+        crc_table[dividend]=remainder;
+	}
+}
+
+uint16_t crcM17(const *crc_table, const uint8_t* message, uint16_t nBytes)
+{
+	uint8_t data;
+	uint16_t remainder=0;
+
+	for(uint16_t byte=0; byte<nBytes; ++byte)
+	{
+		data=message[byte]^(remainder>>8);
+		remainder=crc_table[data]^(remainder<<8);
+	}
+
+	return(remainder);
+}
 
 uint8_t* decode_callsign_base40(uint64_t encoded, uint8_t *callsign)
 {
@@ -78,6 +119,7 @@ int main(int argc, char *argv[])
 	cod = codec2_create(CODEC2_MODE_3200);
 	memset(bits, 0, 50);
 	memset(speech_buff, 0, 320);
+	CRC_Init(CRC_LUT, poly);
 	
 	s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	
@@ -100,8 +142,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	printf("Listening for M17 frames on port %d:\n", port_num);
-	printf("Src\t\tDst\t\tType\n");
+	//printf("Listening for M17 frames on port %d:\n", port_num);
+	//printf("Src\t\tDst\t\tType\n");
 
 	while(1)
 	{
@@ -116,25 +158,25 @@ int main(int argc, char *argv[])
 		{
 			uint64_t tmp;
 			tmp=(bits[0]<<(5*8))|(bits[1]<<(4*8))|(bits[2]<<(3*8))|(bits[3]<<(2*8))|(bits[4]<<(1*8))|bits[5];
-			decode_callsign_base40(tmp, src);
+			decode_callsign_base40(tmp, packet.src);
 			tmp=(bits[6]<<(5*8))|(bits[7]<<(4*8))|(bits[8]<<(3*8))|(bits[9]<<(2*8))|(bits[10]<<(1*8))|bits[11];
-			decode_callsign_base40(tmp, dst);
-			type=(bits[12]<<8)|bits[13];
+			decode_callsign_base40(tmp, packet.dst);
+			packet.type=(bits[12]<<8)|bits[13];
 
-			memcpy(nonce, &bits[14], 14);
-			crc_lich=bits[28]<<8|bits[29];
-			fn=bits[30]<<8|bits[31];
-			memcpy(payload, &bits[32], 16);
-			crc_pld=bits[48]<<8|bits[49];
+			memcpy(packet.nonce, &bits[14], 14);
+			packet.crc_lich=bits[28]<<8|bits[29];
+			packet.fn=bits[30]<<8|bits[31];
+			memcpy(packet.payload, &bits[32], 16);
+			packet.crc_pld=bits[48]<<8|bits[49];
 
 			//info
-			fprintf(stderr,"%s\t\t%s\t\t%04X\n", src, dst, type);
+			//fprintf(stderr,"%s\t\t%s\t\t%04X\n", packet.src, packet.dst, packet.type);
 
 			if(((type>>1)&0b11)==0b10)	//voice only
 			{
 				//reconstruct speech
-				codec2_decode(cod, &speech_buff[0], &payload[0]);
-				codec2_decode(cod, &speech_buff[160], &payload[8]);
+				codec2_decode(cod, &speech_buff[0], packet->payload[0]);
+				codec2_decode(cod, &speech_buff[160], packet->payload[8]);
 				
 				//send to stdout for playback
 				for(uint16_t i=0; i<320*2; i++)
