@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Listening for M17 frames on port %d:\n", port_num);
-	printf("Src\t\tDst\t\tType\tPld\n");
+	printf("    FN\t    Src\t\t    Dst\t\tType\tSID\tPld\n");
 
 	while(1)
 	{
@@ -146,13 +146,13 @@ int main(int argc, char *argv[])
 
 		if(rcv_len==54)
 		{
-			packet.sid=(bits[4]<<8)|bits[5];
+			packet.sid=((uint16_t)bits[4]<<8)|bits[5];
 			uint64_t tmp;
-			tmp=(bits[6]<<(5*8))|(bits[7]<<(4*8))|(bits[8]<<(3*8))|(bits[9]<<(2*8))|(bits[10]<<(1*8))|bits[11];
-			decode_callsign_base40(tmp, packet.src);
-			tmp=(bits[12]<<(5*8))|(bits[13]<<(4*8))|(bits[14]<<(3*8))|(bits[15]<<(2*8))|(bits[16]<<(1*8))|bits[17];
+			tmp=((uint64_t)bits[6]<<(5*8))|((uint64_t)bits[7]<<(4*8))|((uint64_t)bits[8]<<(3*8))|((uint64_t)bits[9]<<(2*8))|((uint64_t)bits[10]<<(1*8))|(uint64_t)bits[11];
 			decode_callsign_base40(tmp, packet.dst);
-			packet.type=(bits[18]<<8)|bits[19];
+			tmp=((uint64_t)bits[12]<<(5*8))|((uint64_t)bits[13]<<(4*8))|((uint64_t)bits[14]<<(3*8))|((uint64_t)bits[15]<<(2*8))|((uint64_t)bits[16]<<(1*8))|(uint64_t)bits[17];
+			decode_callsign_base40(tmp, packet.src);
+			packet.type=((uint16_t)bits[18]<<8)|bits[19];
 
 			memcpy(packet.nonce, &bits[20], 14);
 			packet.fn=bits[34]<<8|bits[35];
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 			packet.crc_udp=bits[52]<<8|bits[53];
 
 			//info
-			printf("%s\t\t%s\t\t%04X\t", packet.src, packet.dst, packet.type);
+			printf("%6d\t%10s\t%10s\t%4X\t%04X\t", packet.fn, packet.src, packet.dst, packet.type, packet.sid);
 			for(uint8_t i=0; i<128/8; i++)
 			{
 				printf("%02X", packet.payload[i]);
