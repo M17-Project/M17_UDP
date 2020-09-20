@@ -9,6 +9,15 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+//colors
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 //port
 uint16_t port_num=17000;		//default port
 
@@ -103,7 +112,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf(stderr, "Not enough args\n");
+		fprintf(stderr, ANSI_COLOR_RED "Not enough args" ANSI_COLOR_RESET "\n");
 		return 1;
 	}
 
@@ -115,7 +124,7 @@ int main(int argc, char *argv[])
 	
 	if(s==-1)
 	{
-		fprintf(stderr, "Socket error\n");
+		fprintf(stderr, ANSI_COLOR_RED "Socket error" ANSI_COLOR_RESET "\n");
 		return 1;
 	}
 	
@@ -128,7 +137,7 @@ int main(int argc, char *argv[])
 	
 	if(bind(s, (struct sockaddr*)&si_me, sizeof(si_me))==-1)
 	{
-		fprintf(stderr, "Can't bind to port %d\n", port_num);
+		fprintf(stderr, ANSI_COLOR_RED "Can't bind to port %d" ANSI_COLOR_RESET "\n", port_num);
 		return 1;
 	}
 
@@ -155,25 +164,28 @@ int main(int argc, char *argv[])
 			packet.type=((uint16_t)bits[18]<<8)|bits[19];
 
 			memcpy(packet.nonce, &bits[20], 14);
-			packet.fn=bits[34]<<8|bits[35];
+			packet.fn=((uint16_t)bits[34]<<8)|(uint16_t)bits[35];
 			memcpy(packet.payload, &bits[36], 16);
-			packet.crc_udp=bits[52]<<8|bits[53];
+			packet.crc_udp=((uint16_t)bits[52]<<8)|(uint16_t)bits[53];
+			uint16_t local_crc=CRC_M17(CRC_LUT, bits, 52);
 
 			//info
+			if(packet.crc_udp!=local_crc)
+				printf(ANSI_COLOR_YELLOW);
+			
 			printf("%6d\t%10s\t%10s\t%4X\t%04X\t", packet.fn, packet.src, packet.dst, packet.type, packet.sid);
 			for(uint8_t i=0; i<128/8; i++)
-			{
 				printf("%02X", packet.payload[i]);
-				if(i==(128/8-1))
-					printf("\n");
-			}
+			
+			if(packet.crc_udp!=local_crc)
+				printf(ANSI_COLOR_RESET);
+			printf("\n");
 			
 			/*fp=fopen("out.raw", "a");
 			fwrite(speech_buff, 2, 160, fp);
 			fclose(fp);*/
 		}
 	}
-
 	
 	return 0;
 }
