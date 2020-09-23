@@ -16,7 +16,7 @@
 uint16_t port_num=17000;		//default port
 
 //UDP packet
-uint8_t bits[50];
+uint8_t bits[54];
 
 //for reconstructed speech samples, 2x160 (2x20ms)
 uint16_t speech_buff[320];
@@ -28,9 +28,18 @@ struct CODEC2 *cod;
 struct sockaddr_in si_me, si_other;
 int s, i, slen = sizeof(si_other) , rcv_len;
 
+//colors
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 //CRC
 uint16_t CRC_LUT[256];
-uint16_t poly=0xAC9A;
+uint16_t poly=0x5935;
 
 //test
 //FILE *fp;
@@ -38,14 +47,14 @@ uint16_t poly=0xAC9A;
 //stream info
 struct moip_packet
 {
+	uint16_t sid;
 	uint8_t src[10];
 	uint8_t dst[10];
 	uint16_t type;
 	uint8_t nonce[14];
-	uint16_t crc_lich;
 	uint16_t fn;
 	uint8_t payload[16];
-	uint16_t crc_pld;
+	uint16_t crc_udp;
 } packet;
 
 void CRC_Init(uint16_t *crc_table, uint16_t poly)
@@ -117,7 +126,7 @@ int main(int argc, char *argv[])
 
 	//init
 	cod = codec2_create(CODEC2_MODE_3200);
-	memset(bits, 0, 50);
+	memset(bits, 0, 54);
 	memset(speech_buff, 0, 320);
 	CRC_Init(CRC_LUT, poly);
 	
@@ -142,35 +151,30 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	//printf("Listening for M17 frames on port %d:\n", port_num);
-	//printf("Src\t\tDst\t\tType\n");
-
 	while(1)
 	{
 		//receive packet via UDP
-		if((rcv_len=recvfrom(s, bits, 50, 0, (struct sockaddr*)&si_other, &slen))==-1)
+		if((rcv_len=recvfrom(s, bits, 54, 0, (struct sockaddr*)&si_other, &slen))==-1)
 		{
 			fprintf(stderr, "What the hell?\n");
 			return 1;
 		}
 
-		if(rcv_len==50)
+		if(rcv_len==54)
 		{
+			packet.sid=((uint16_t)bits[4]<<8)|bits[5];
 			uint64_t tmp;
-			tmp=(bits[0]<<(5*8))|(bits[1]<<(4*8))|(bits[2]<<(3*8))|(bits[3]<<(2*8))|(bits[4]<<(1*8))|bits[5];
-			decode_callsign_base40(tmp, packet.src);
-			tmp=(bits[6]<<(5*8))|(bits[7]<<(4*8))|(bits[8]<<(3*8))|(bits[9]<<(2*8))|(bits[10]<<(1*8))|bits[11];
+			tmp=((uint64_t)bits[6]<<(5*8))|((uint64_t)bits[7]<<(4*8))|((uint64_t)bits[8]<<(3*8))|((uint64_t)bits[9]<<(2*8))|((uint64_t)bits[10]<<(1*8))|(uint64_t)bits[11];
 			decode_callsign_base40(tmp, packet.dst);
-			packet.type=(bits[12]<<8)|bits[13];
+			tmp=((uint64_t)bits[12]<<(5*8))|((uint64_t)bits[13]<<(4*8))|((uint64_t)bits[14]<<(3*8))|((uint64_t)bits[15]<<(2*8))|((uint64_t)bits[16]<<(1*8))|(uint64_t)bits[17];
+			decode_callsign_base40(tmp, packet.src);
+			packet.type=((uint16_t)bits[18]<<8)|bits[19];
 
-			memcpy(packet.nonce, &bits[14], 14);
-			packet.crc_lich=bits[28]<<8|bits[29];
-			packet.fn=bits[30]<<8|bits[31];
-			memcpy(packet.payload, &bits[32], 16);
-			packet.crc_pld=bits[48]<<8|bits[49];
-
-			//info
-			//fprintf(stderr,"%s\t\t%s\t\t%04X\n", packet.src, packet.dst, packet.type);
+			memcpy(packet.nonce, &bits[20], 14);
+			packet.fn=((uint16_t)bits[34]<<8)|(uint16_t)bits[35];
+			memcpy(packet.payload, &bits[36], 16);
+			packet.crc_udp=((uint16_t)bits[52]<<8)|(uint16_t)bits[53];
+			uint16_t local_crc=CRC_M17(CRC_LUT, bits, 52);
 
 			if(((packet.type>>1)&0b11)==0b10)	//voice only
 			{
@@ -187,6 +191,7 @@ int main(int argc, char *argv[])
 					else
 						printf("%c", (uint8_t)(speech_buff[i/2]>>8));
 				}
+				
 				fflush(stdout);
 			}
 
