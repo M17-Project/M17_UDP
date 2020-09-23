@@ -3,8 +3,8 @@
 CPP      = g++
 CC       = gcc
 WINDRES  = 
-OBJ      = main.o codebook.o codebookd.o codebookdt.o codebookge.o codebookjvm.o codebooklspmelvq.o codebookmel.o codebooknewamp1.o codebooknewamp1_energy.o codebookres.o codebookvq.o codec2.o codec2_fft.o dump.o gp_interleaver.o interldpc.o interp.o kiss_fft.o kiss_fftr.o lpc.o lsp.o mbest.o modem_stats.o mpdecode_core.o newamp1.o nlp.o ofdm.o pack.o phase.o postfilter.o quantise.o sine.o
-LINKOBJ  = main.o codebook.o codebookd.o codebookdt.o codebookge.o codebookjvm.o codebooklspmelvq.o codebookmel.o codebooknewamp1.o codebooknewamp1_energy.o codebookres.o codebookvq.o codec2.o codec2_fft.o dump.o gp_interleaver.o interp.o kiss_fft.o kiss_fftr.o lpc.o lsp.o mbest.o modem_stats.o mpdecode_core.o newamp1.o nlp.o ofdm.o pack.o phase.o postfilter.o quantise.o sine.o
+OBJ      = main.o codebook.o codebookd.o codebookdt.o codebookge.o codebookjvm.o codebooklspmelvq.o codebookmel.o codebooknewamp1.o codebooknewamp1_energy.o codebookres.o codebookvq.o codec2.o codec2_fft.o gp_interleaver.o interldpc.o interp.o kiss_fft.o kiss_fftr.o lpc.o lsp.o mbest.o modem_stats.o mpdecode_core.o newamp1.o nlp.o ofdm.o pack.o phase.o postfilter.o quantise.o sine.o
+LINKOBJ  = main.o codebook.o codebookd.o codebookdt.o codebookge.o codebookjvm.o codebooklspmelvq.o codebookmel.o codebooknewamp1.o codebooknewamp1_energy.o codebookres.o codebookvq.o codec2.o codec2_fft.o gp_interleaver.o interp.o kiss_fft.o kiss_fftr.o lpc.o lsp.o mbest.o modem_stats.o mpdecode_core.o newamp1.o nlp.o ofdm.o pack.o phase.o postfilter.o quantise.o sine.o
 LIBS     = -static-libgcc -lm
 INCS     = 
 CXXINCS  = 
