@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Listening for M17 frames on port %d:\n", port_num);
-	printf("    FN\t    Src\t\t    Dst\t\tType\tSID\tPld\n");
+	printf("    FN\t    Src\t\t    Dst\t\tType\tSID\trCRC\tcCRC\tPld\n");
 
 	while(1)
 	{
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 			if(packet.crc_udp!=local_crc)
 				printf(ANSI_COLOR_YELLOW);
 			
-			printf("%6d\t%10s\t%10s\t%4X\t%04X\t", packet.fn, packet.src, packet.dst, packet.type, packet.sid);
+			printf("%6d\t%10s\t%10s\t%4X\t%04X\t%04X\t%04X\t", packet.fn, packet.src, packet.dst, packet.type, packet.sid, packet.crc_udp, local_crc);
 			for(uint8_t i=0; i<128/8; i++)
 				printf("%02X", packet.payload[i]);
 			
